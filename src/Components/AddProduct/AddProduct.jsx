@@ -97,7 +97,7 @@ import React, { useState } from "react";
 import "./AddProduct.css";
 import upload_area from "../Assets/upload_area.svg";
 const backend_url = "https://tribaloobackend.onrender.com/";
-
+const currency = '₹';
 
 
 const AddProduct = () => {
