@@ -1,246 +1,93 @@
-// import React, { useState } from "react";
-// import "./AddProduct.css";
-// import upload_area from "../Assets/upload_area.svg";
-// import { backend_url } from "../../App";
-
-// const AddProduct = () => {
-
-//   const [image, setImage] = useState(false);
-//   const [productDetails, setProductDetails] = useState({
-//     name: "",
-//     description: "",
-//     image: "",
-//     category: "delights",
-//     new_price: "",
-//     old_price: ""
-//   });
-
-//   const AddProduct = async () => {
-
-//     let dataObj;
-//     let product = productDetails;
-
-//     let formData = new FormData();
-//     formData.append('product', image);
-
-//     await fetch(`${backend_url}/upload`, {
-//       method: 'POST',
-//       headers: {
-//         Accept: 'application/json',
-//       },
-//       body: formData,
-//     }).then((resp) => resp.json())
-//       .then((data) => { dataObj = data });
-
-//     if (dataObj.success) {
-//       product.image = dataObj.image_url;
-//       await fetch(`${backend_url}/addproduct`, {
-//         method: 'POST',
-//         headers: {
-//           Accept: 'application/json',
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(product),
-//       })
-//         .then((resp) => resp.json())
-//         .then((data) => { data.success ? alert("Product Added") : alert("Failed") });
-
-//     }
-//   }
-
-//   const changeHandler = (e) => {
-//     setProductDetails({ ...productDetails, [e.target.name]: e.target.value });
-//   }
-
-//   return (
-//     <div className="addproduct">
-//       <div className="addproduct-itemfield">
-//         <p>Product title</p>
-//         <input type="text" name="name" value={productDetails.name} onChange={(e) => { changeHandler(e) }} placeholder="Type here" />
-//       </div>
-//       <div className="addproduct-itemfield">
-//         <p>Product description</p>
-//         <input type="text" name="description" value={productDetails.description} onChange={(e) => { changeHandler(e) }} placeholder="Type here" />
-//       </div>
-//       <div className="addproduct-price">
-//         <div className="addproduct-itemfield">
-//           <p>Price</p>
-//           <input type="number" name="old_price" value={productDetails.old_price} onChange={(e) => { changeHandler(e) }} placeholder="Type here" />
-//         </div>
-//         <div className="addproduct-itemfield">
-//           <p>Offer Price</p>
-//           <input type="number" name="new_price" value={productDetails.new_price} onChange={(e) => { changeHandler(e) }} placeholder="Type here" />
-//         </div>
-//       </div>
-//       <div className="addproduct-itemfield">
-//         <p>Product category</p>
-//         <select value={productDetails.category} name="category" className="add-product-selector" onChange={changeHandler}>
-//           <option value="delights">Delights</option>
-//           <option value="attires">Attires</option>
-//           <option value="crafts">Crafts</option>
-//         </select>
-//       </div>
-//       <div className="addproduct-itemfield">
-//         <p>Product image</p>
-//         <label htmlFor="file-input">
-//           <img className="addproduct-thumbnail-img" src={!image ? upload_area : URL.createObjectURL(image)} alt="" />
-//         </label>
-//         <input onChange={(e) => setImage(e.target.files[0])} type="file" name="image" id="file-input" accept="image/*" hidden />
-//       </div>
-//       <button className="addproduct-btn" onClick={() => { AddProduct() }}>ADD</button>
-//     </div>
-//   );
-// };
-
-// export default AddProduct;
 import React, { useState } from "react";
 import "./AddProduct.css";
 import upload_area from "../Assets/upload_area.svg";
-const backend_url = "https://tribaloobackend.onrender.com/";
-const currency = '₹';
-
 
 const AddProduct = () => {
-  const [image, setImage] = useState(false);
+  const [image, setImage] = useState(null);
   const [productDetails, setProductDetails] = useState({
     name: "",
     description: "",
-    image: "",
-    category: "delights", // ✅ Set to valid default
+    category: "delights",
     new_price: "",
     old_price: ""
   });
 
-  const AddProduct = async () => {
-    let dataObj;
-    let product = productDetails;
+  const handleAddProduct = async () => {
+    try {
+      // 1. Upload image
+      const formData = new FormData();
+      formData.append('product', image);
 
-    let formData = new FormData();
-    formData.append('product', image);
-
-    await fetch(`${backend_url}/upload`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-      },
-      body: formData,
-    })
-      .then((resp) => resp.json())
-      .then((data) => {
-        dataObj = data;
+      const uploadResponse = await fetch('https://tribaloobackend.onrender.com/upload', {
+        method: 'POST',
+        body: formData,
       });
 
-    if (dataObj.success) {
-      product.image = dataObj.image_url;
+      const uploadData = await uploadResponse.json();
 
-      await fetch(`${backend_url}/addproduct`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(product),
-      })
-        .then((resp) => resp.json())
-        .then((data) => {
-          data.success ? alert("✅ Product Added") : alert("❌ Failed to add product");
+      if (uploadData.success) {
+        // 2. Add product with image path
+        const productResponse = await fetch('https://tribaloobackend.onrender.com/addproduct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...productDetails,
+            image: uploadData.image // ✅ CORRECTED
+          }),
         });
-    } else {
-      alert("❌ Image upload failed");
+
+        const productData = await productResponse.json();
+
+        if (productData.success) {
+          alert("✅ Product added successfully!");
+          setProductDetails({
+            name: "",
+            description: "",
+            category: "delights",
+            new_price: "",
+            old_price: ""
+          });
+          setImage(null);
+        } else {
+          alert("❌ Failed to add product.");
+        }
+      } else {
+        alert("❌ Image upload failed.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Something went wrong.");
     }
   };
 
-  const changeHandler = (e) => {
-    setProductDetails({ ...productDetails, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setProductDetails({
+      ...productDetails,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (
     <div className="addproduct">
-      <div className="addproduct-itemfield">
-        <p>Product title</p>
-        <input
-          type="text"
-          name="name"
-          value={productDetails.name}
-          onChange={changeHandler}
-          placeholder="Type here"
-        />
-      </div>
+      <h1>Add Product</h1>
+      <input name="name" type="text" placeholder="Product name" value={productDetails.name} onChange={handleChange} />
+      <input name="description" type="text" placeholder="Product description" value={productDetails.description} onChange={handleChange} />
+      <input name="new_price" type="number" placeholder="Offer Price" value={productDetails.new_price} onChange={handleChange} />
+      <input name="old_price" type="number" placeholder="Price" value={productDetails.old_price} onChange={handleChange} />
+      <select name="category" value={productDetails.category} onChange={handleChange}>
+        <option value="delights">Delights</option>
+        <option value="crafts">Crafts</option>
+        <option value="attires">Clothing</option>
+      </select>
 
-      <div className="addproduct-itemfield">
-        <p>Product description</p>
-        <input
-          type="text"
-          name="description"
-          value={productDetails.description}
-          onChange={changeHandler}
-          placeholder="Type here"
-        />
-      </div>
+      <label htmlFor="image-upload">
+        <img src={image ? URL.createObjectURL(image) : upload_area} alt="upload" className="addproduct-img-preview" />
+      </label>
+      <input id="image-upload" type="file" onChange={(e) => setImage(e.target.files[0])} hidden />
 
-      <div className="addproduct-price">
-        <div className="addproduct-itemfield">
-          <p>Price</p>
-          <input
-            type="number"
-            name="old_price"
-            value={productDetails.old_price}
-            onChange={changeHandler}
-            placeholder="Old Price"
-          />
-        </div>
-
-        <div className="addproduct-itemfield">
-          <p>Offer Price</p>
-          <input
-            type="number"
-            name="new_price"
-            value={productDetails.new_price}
-            onChange={changeHandler}
-            placeholder="New Price"
-          />
-        </div>
-      </div>
-
-      <div className="addproduct-itemfield">
-        <p>Product category</p>
-        <select
-          value={productDetails.category}
-          name="category"
-          className="add-product-selector"
-          onChange={changeHandler}
-        >
-          <option value="delights">Delights</option>
-          <option value="attires">Attires</option>
-          <option value="crafts">Crafts</option>
-        </select>
-      </div>
-
-      <div className="addproduct-itemfield">
-        <p>Product image</p>
-        <label htmlFor="file-input">
-          <img
-            className="addproduct-thumbnail-img"
-            src={!image ? upload_area : URL.createObjectURL(image)}
-            alt=""
-          />
-        </label>
-        <input
-          onChange={(e) => setImage(e.target.files[0])}
-          type="file"
-          name="image"
-          id="file-input"
-          accept="image/*"
-          hidden
-        />
-      </div>
-
-      <button className="addproduct-btn" onClick={AddProduct}>
-        ADD
-      </button>
+      <button onClick={handleAddProduct}>ADD PRODUCT</button>
     </div>
   );
 };
 
 export default AddProduct;
-
