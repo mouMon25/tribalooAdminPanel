@@ -96,7 +96,9 @@
 import React, { useState } from "react";
 import "./AddProduct.css";
 import upload_area from "../Assets/upload_area.svg";
-import { backend_url } from "../../App";
+const backend_url = "https://tribaloobackend.onrender.com/";
+
+
 
 const AddProduct = () => {
   const [image, setImage] = useState(false);
