@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import "./ListProduct.css";
 import cross_icon from '../Assets/cross_icon.png'
-const backend_url = "https://tribaloobackend.onrender.com/";
+const backend_url = "https://tribaloobackend.onrender.com";
 const currency = '₹';
 
 const ListProduct = () => {
   const [allproducts, setAllProducts] = useState([]);
 
   const fetchInfo = () => {
-    fetch(`${backend_url}/allproducts`)
+    fetch(`${backend_url}allproducts`)
       .then((res) => res.json())
       .then((data) => setAllProducts(data))
   }
@@ -18,7 +18,7 @@ const ListProduct = () => {
   }, [])
 
   const removeProduct = async (id) => {
-    await fetch(`${backend_url}/removeproduct`, {
+    await fetch(`${backend_url}removeproduct`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
